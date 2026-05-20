@@ -23,14 +23,19 @@ public class LoadScence : MonoBehaviour
     {
         SceneManager.LoadScene("BannerScene");
     }
-        public void LoadStoreScene()
+    public void LoadStoreScene()
     {
         SceneManager.LoadScene("StoreScene");
     }
 
-        public void LoadSettingScene()
+    public void LoadSettingScene()
     {
         SceneManager.LoadScene("SettingScene");
+    }
+
+    public void LoadIslandScene()
+    {
+        SceneManager.LoadScene("IslandScene");
     }
 
     public void QuitGame()

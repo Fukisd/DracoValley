@@ -23,6 +23,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SettingScene.unity
     guid: 4440ba0a2f19a14498e9db69e9b9fae4
+  - enabled: 1
+    path: Assets/Scenes/IslandScene.unity
+    guid: 4bf42957eca36ac4d8ad8ec2d764e38b
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
