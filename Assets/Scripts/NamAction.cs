@@ -3,6 +3,7 @@
 public class NamAction : MonoBehaviour
 {
     [SerializeField] private GameObject namBanner;
+    [SerializeField] private GameObject chumRuotBanner;
     [SerializeField] private GameObject parentToDisable;
 
     private Camera mainCamera;
@@ -38,12 +39,17 @@ public class NamAction : MonoBehaviour
         }
     }
 
-    private void ChooseNam()
+    public void ChooseNam()
     {
         // Hiện banner cây nấm
         if (namBanner != null)
         {
             namBanner.SetActive(true);
+        }
+
+        if(chumRuotBanner != null)
+        {
+            chumRuotBanner.SetActive(false);
         }
 
         // Tắt object cha chứa option cây nấm
