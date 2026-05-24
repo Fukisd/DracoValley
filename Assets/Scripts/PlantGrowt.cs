@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public enum PlantType
 {
@@ -52,18 +53,24 @@ public class PlantGrowth : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                // Nếu có UI (Banner) đè lên, dừng ngay lập tức, không ăn lệnh click của cây nữa
+                return;
+            }
             if (mainCamera == null) return;
 
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
+                Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit2D hit = Physics2D.GetRayIntersection(ray);
 
-            if (hit.collider != null)
-            {
-                if (hit.collider.gameObject == gameObject || hit.collider.transform.IsChildOf(transform))
+                if (hit.collider != null)
                 {
-                    HarvestPlant();
+                    if (hit.collider.gameObject == gameObject || hit.collider.transform.IsChildOf(transform))
+                    {
+                        HarvestPlant();
+                    }
                 }
-            }
+            
         }
     }
 

@@ -3,6 +3,7 @@
 public class ChumRuotAction : MonoBehaviour
 {
     [SerializeField] private GameObject chumRuotBanner;
+    [SerializeField] private GameObject namBanner;
     [SerializeField] private GameObject parentToDisable;
 
     private Camera mainCamera;
@@ -38,12 +39,17 @@ public class ChumRuotAction : MonoBehaviour
         }
     }
 
-    private void ChooseChumRuot()
+    public void ChooseChumRuot()
     {
         // Hiện banner chùm ruột
         if (chumRuotBanner != null)
         {
             chumRuotBanner.SetActive(true);
+        }
+
+        if (namBanner != null)
+        {
+            namBanner.SetActive(false);
         }
 
         // Tắt object cha / panel chứa option

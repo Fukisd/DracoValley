@@ -39,7 +39,7 @@ public class AcceptAction : MonoBehaviour
         }
     }
 
-    private void AcceptPlant()
+    public void AcceptPlant()
     {
         if (hasPlanted) return;
 
