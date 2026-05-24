@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 282a27f1acd8e51418e9df9114d44d29
+guid: 11cfbaa6dad256c41b8a30a311bb913e
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\u0110\u1EA2O 1 m\u1EDF r\u1ED9ng_0"
+      name: "con c\xE1nh 4 g\xF3c_0"
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1440
-        height: 826
+        x: 66
+        y: 326
+        width: 420
+        height: 438
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,8 +112,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 760c0ab3447c65040b941f6b7717b7e9
-      internalID: -1864122096
+      spriteID: 6dc7cc9d6b87ed241b7c807d09a1fed2
+      internalID: 1939452853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "con c\xE1nh 4 g\xF3c_1"
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 326
+        width: 388
+        height: 392
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a1b2b6d18e97904e9fbeb2daa95117b
+      internalID: 1657523088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "con c\xE1nh 4 g\xF3c_2"
+      rect:
+        serializedVersion: 2
+        x: 991
+        y: 324
+        width: 396
+        height: 405
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3524efe94b4b844489e7f05138ce0df
+      internalID: -1066871350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "con c\xE1nh 4 g\xF3c_3"
+      rect:
+        serializedVersion: 2
+        x: 1423
+        y: 315
+        width: 431
+        height: 448
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f47e3df3f8d8ba4387f4ee2c9d30782
+      internalID: -423196448
       vertices: []
       indices: 
       edges: []
@@ -122,7 +188,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 61bb84a32819df7499762ad55386840a
+    spriteID: 8644fa1dd4e619d43b788562fcf8797b
     internalID: 0
     vertices: []
     indices: 
@@ -134,7 +200,10 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      "\u0110\u1EA2O 1 m\u1EDF r\u1ED9ng_0": -1864122096
+      "con c\xE1nh 4 g\xF3c_0": 1939452853
+      "con c\xE1nh 4 g\xF3c_1": 1657523088
+      "con c\xE1nh 4 g\xF3c_2": -1066871350
+      "con c\xE1nh 4 g\xF3c_3": -423196448
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
