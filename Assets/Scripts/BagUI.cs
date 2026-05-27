@@ -2,22 +2,46 @@
 
 public class BagUI : MonoBehaviour
 {
-    // Hàm này sẽ được gọi khi bạn bấm vào Button
-    public void ToggleBagUI()
+    [Header("21 ô vật phẩm trong Bag")]
+    [SerializeField] private BagSlotUI[] slots = new BagSlotUI[21];
+    [SerializeField] private GameObject bagPanel;
+
+    private void OnEnable()
     {
-        // !gameObject.activeSelf nghĩa là: nếu đang bật thì tắt, nếu đang tắt thì bật
-        gameObject.SetActive(!gameObject.activeSelf);
+        RefreshBagUI();
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnBagChanged += RefreshBagUI;
+        }
     }
 
-    // Nếu bạn chỉ muốn bấm vào là TẮT (Disable/Unable) hẳn:
-    public void CloseBagUI()
+    private void OnDisable()
     {
-        gameObject.SetActive(false);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnBagChanged -= RefreshBagUI;
+        }
     }
 
-    // Nếu bạn chỉ muốn bấm vào là BẬT (Enable):
-    public void OpenBagUI()
+    public void RefreshBagUI()
     {
-        gameObject.SetActive(true);
+        if (GameManager.Instance == null)
+        {
+            Debug.LogWarning("Không tìm thấy GameManager.");
+            return;
+        }
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            IBagItem item = GameManager.Instance.GetItemAtSlot(i);
+
+            slots[i].SetItem(item);
+        }
+    }
+
+    public void CloseUI()
+    {
+        bagPanel.SetActive(false);
     }
 }

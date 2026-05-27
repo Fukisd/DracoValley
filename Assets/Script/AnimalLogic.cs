@@ -86,8 +86,29 @@ public class AnimalLogic : MonoBehaviour
 
     public void Harvest()
     {
+        if (currentState != AnimalState.Ready)
+        {
+            Debug.Log("Chưa thể thu hoạch vì vật nuôi chưa sản xuất xong.");
+            return;
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddVayRong(1);
+            Debug.Log("Đã thu hoạch và cộng 1 Vảy Rồng.");
+        }
+        else
+        {
+            Debug.LogError("Không tìm thấy GameManager.");
+        }
+
         currentState = AnimalState.Hungry;
-        if (movementScript != null) movementScript.canMove = true; 
+
+        if (movementScript != null)
+        {
+            movementScript.canMove = true;
+        }
+
         isUIActive = false;
         UpdateUI();
     }

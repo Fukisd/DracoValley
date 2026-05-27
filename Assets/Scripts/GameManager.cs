@@ -1,47 +1,243 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+
+public interface IBagItem
+{
+    string ItemCode { get; }
+    Sprite ItemImage { get; }
+    int Quantity { get; }
+
+    void AddQuantity(int amount);
+    void SetQuantity(int amount);
+}
+
+public abstract class BagItemBase : IBagItem
+{
+    public abstract string ItemCode { get; }
+
+    public Sprite ItemImage { get; private set; }
+    public int Quantity { get; private set; }
+
+    protected BagItemBase(Sprite itemImage, int quantity)
+    {
+        ItemImage = itemImage;
+        Quantity = Mathf.Max(0, quantity);
+    }
+
+    public void AddQuantity(int amount)
+    {
+        Quantity += amount;
+
+        if (Quantity < 0)
+        {
+            Quantity = 0;
+        }
+    }
+
+    public void SetQuantity(int amount)
+    {
+        Quantity = Mathf.Max(0, amount);
+    }
+}
+
+public class Nam : BagItemBase
+{
+    public const string Code = "NAM";
+
+    public override string ItemCode => Code;
+
+    public Nam(Sprite itemImage, int quantity) : base(itemImage, quantity)
+    {
+    }
+}
+
+public class ChumRuot : BagItemBase
+{
+    public const string Code = "CHUM_RUOT";
+
+    public override string ItemCode => Code;
+
+    public ChumRuot(Sprite itemImage, int quantity) : base(itemImage, quantity)
+    {
+    }
+}
+
+public static class BagItemFactory
+{
+    public static IBagItem CreateItem(string itemCode, Sprite itemImage, int quantity)
+    {
+        switch (itemCode)
+        {
+            case Nam.Code:
+                return new Nam(itemImage, quantity);
+
+            case ChumRuot.Code:
+                return new ChumRuot(itemImage, quantity);
+
+            default:
+                Debug.LogWarning("Không tìm thấy class vật phẩm cho itemCode: " + itemCode);
+                return null;
+        }
+    }
+}
 
 [System.Serializable]
 public class Bag
 {
-    [SerializeField] private int chumRuot = 0;
-    [SerializeField] private int nam = 0;
 
-    public int ChumRuot => chumRuot;
-    public int Nam => nam;
+    public const int MaxSlots = 21;
+    public const int MaxQuantityPerSlot = 99;
 
-    public void AddChumRuot(int amount)
+    private List<IBagItem> items = new List<IBagItem>();
+
+    public IReadOnlyList<IBagItem> Items => items;
+
+    public IBagItem GetItemAtSlot(int index)
     {
-        chumRuot += amount;
-
-        if (chumRuot < 0)
+        if (index < 0 || index >= MaxSlots)
         {
-            chumRuot = 0;
+            return null;
         }
 
-        Debug.Log("Chùm ruột hiện có: " + chumRuot);
-    }
-
-    public void AddNam(int amount)
-    {
-        nam += amount;
-
-        if (nam < 0)
+        if (index >= items.Count)
         {
-            nam = 0;
+            return null;
         }
 
-        Debug.Log("Nấm hiện có: " + nam);
+        return items[index];
+    }
+    public bool AddItem(string itemCode, Sprite itemImage, int amount)
+    {
+        if (string.IsNullOrEmpty(itemCode) || amount <= 0)
+        {
+            return false;
+        }
+
+        int remainingAmount = amount;
+
+        // Bước 1: Ưu tiên cộng vào các ô cùng loại chưa đủ 99
+        foreach (IBagItem item in items)
+        {
+            if (item.ItemCode == itemCode && item.Quantity < MaxQuantityPerSlot)
+            {
+                int spaceLeft = MaxQuantityPerSlot - item.Quantity;
+                int amountToAdd = Mathf.Min(spaceLeft, remainingAmount);
+
+                item.AddQuantity(amountToAdd);
+                remainingAmount -= amountToAdd;
+
+                if (remainingAmount <= 0)
+                {
+                    Debug.Log("Đã thêm đủ vật phẩm vào Bag: " + itemCode);
+                    return true;
+                }
+            }
+        }
+
+        // Bước 2: Nếu còn dư thì tạo ô mới
+        while (remainingAmount > 0)
+        {
+            if (items.Count >= MaxSlots)
+            {
+                Debug.LogWarning("Bag đã đầy. Không thể thêm hết vật phẩm: " + itemCode);
+                Debug.LogWarning("Số lượng còn dư chưa thêm được: " + remainingAmount);
+                return false;
+            }
+
+            int amountForNewSlot = Mathf.Min(MaxQuantityPerSlot, remainingAmount);
+
+            IBagItem newItem = BagItemFactory.CreateItem(itemCode, itemImage, amountForNewSlot);
+
+            if (newItem == null)
+            {
+                return false;
+            }
+
+            items.Add(newItem);
+            remainingAmount -= amountForNewSlot;
+
+            Debug.Log("Đã tạo ô mới cho vật phẩm: " + itemCode + " x" + amountForNewSlot);
+        }
+
+        return true;
     }
 
-    public void SetChumRuot(int amount)
+    public bool RemoveItem(string itemCode, int amount)
     {
-        chumRuot = Mathf.Max(0, amount);
+        if (string.IsNullOrEmpty(itemCode) || amount <= 0)
+        {
+            return false;
+        }
+
+        int remainingAmount = amount;
+
+        // Trừ từ ô sau về trước để giữ ô đầu ổn định hơn
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            if (items[i].ItemCode == itemCode)
+            {
+                int quantityInSlot = items[i].Quantity;
+                int amountToRemove = Mathf.Min(quantityInSlot, remainingAmount);
+
+                items[i].AddQuantity(-amountToRemove);
+                remainingAmount -= amountToRemove;
+
+                if (items[i].Quantity <= 0)
+                {
+                    items.RemoveAt(i);
+                }
+
+                if (remainingAmount <= 0)
+                {
+                    Debug.Log("Đã trừ đủ vật phẩm: " + itemCode);
+                    return true;
+                }
+            }
+        }
+
+        Debug.LogWarning("Không đủ số lượng vật phẩm để trừ: " + itemCode);
+        return false;
     }
 
-    public void SetNam(int amount)
+    public int GetQuantity(string itemCode)
     {
-        nam = Mathf.Max(0, amount);
+        int totalQuantity = 0;
+
+        foreach (IBagItem item in items)
+        {
+            if (item.ItemCode == itemCode)
+            {
+                totalQuantity += item.Quantity;
+            }
+        }
+
+        return totalQuantity;
     }
+
+    public void ClearAll()
+    {
+        items.Clear();
+    }
+}
+
+[System.Serializable]
+public class ItemDefinition
+{
+    public string itemCode;
+    public Sprite itemImage;
+}
+
+[System.Serializable]
+public class BagSaveData
+{
+    public List<BagSaveItem> items = new List<BagSaveItem>();
+}
+
+[System.Serializable]
+public class BagSaveItem
+{
+    public string itemCode;
+    public int quantity;
 }
 
 public class GameManager : MonoBehaviour
@@ -51,7 +247,29 @@ public class GameManager : MonoBehaviour
     [Header("Bag / Inventory")]
     [SerializeField] private Bag bag = new Bag();
 
+    [Header("Item Image Database")]
+    [SerializeField] private List<ItemDefinition> itemDefinitions = new List<ItemDefinition>();
+
     public Bag Bag => bag;
+
+    private const string BagSaveKey = "BagData";
+
+    [Header("Vay Rong")]
+    [SerializeField] private int vayRongQuantity = 0;
+    [SerializeField] private TMPro.TextMeshProUGUI vayRongText; // Thêm TextMeshPro để hiển thị Vảy Rồng
+
+    private const string VayRongSaveKey = "VayRongQuantity";
+
+    public int VayRongQuantity => vayRongQuantity;
+
+    public IBagItem GetItemAtSlot(int index)
+    {
+        return bag.GetItemAtSlot(index);
+    }
+
+    public System.Action OnBagChanged;
+
+
 
     private void Awake()
     {
@@ -65,47 +283,189 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadBag();
+        LoadVayRong();
     }
 
-    public void AddChumRuot(int amount)
+    private void UpdateVayRongUI()
     {
-        bag.AddChumRuot(amount);
-        SaveBag();
+        if (vayRongText != null)
+        {
+            vayRongText.text = vayRongQuantity.ToString();
+        }
+    }
+
+    public void AddVayRong(int amount)
+    {
+        vayRongQuantity += amount;
+
+        if (vayRongQuantity < 0)
+        {
+            vayRongQuantity = 0;
+        }
+
+        SaveVayRong();
+        UpdateVayRongUI();
+
+        Debug.Log("Vảy Rồng hiện có: " + vayRongQuantity);
+    }
+
+    public int GetVayRong()
+    {
+        return vayRongQuantity;
+    }
+
+    public void SetVayRong(int amount)
+    {
+        vayRongQuantity = Mathf.Max(0, amount);
+        SaveVayRong();
+        UpdateVayRongUI();
+
+        Debug.Log("Đã set Vảy Rồng = " + vayRongQuantity);
+    }
+
+    private void SaveVayRong()
+    {
+        PlayerPrefs.SetInt(VayRongSaveKey, vayRongQuantity);
+        PlayerPrefs.Save();
+
+        Debug.Log("Đã lưu Vảy Rồng: " + vayRongQuantity);
+    }
+
+    private void LoadVayRong()
+    {
+        vayRongQuantity = PlayerPrefs.GetInt(VayRongSaveKey, 0);
+
+        UpdateVayRongUI();
+
+        Debug.Log("Đã load Vảy Rồng: " + vayRongQuantity);
+    }
+
+    public bool AddItem(string itemCode, int amount)
+    {
+        Sprite itemImage = GetItemImageByCode(itemCode);
+
+        bool success = bag.AddItem(itemCode, itemImage, amount);
+
+        if (success)
+        {
+            SaveBag();
+            OnBagChanged?.Invoke();
+        }
+
+        return success;
+    }
+
+    public bool RemoveItem(string itemCode, int amount)
+    {
+        bool success = bag.RemoveItem(itemCode, amount);
+
+        if (success)
+        {
+            SaveBag();
+            OnBagChanged?.Invoke();
+        }
+
+        return success;
+    }
+
+    public int GetItemQuantity(string itemCode)
+    {
+        return bag.GetQuantity(itemCode);
     }
 
     public void AddNam(int amount)
     {
-        bag.AddNam(amount);
-        SaveBag();
+        AddItem(Nam.Code, amount);
     }
 
-    public int GetChumRuot()
+    public void AddChumRuot(int amount)
     {
-        return bag.ChumRuot;
+        AddItem(ChumRuot.Code, amount);
     }
 
     public int GetNam()
     {
-        return bag.Nam;
+        return GetItemQuantity(Nam.Code);
+    }
+
+    public int GetChumRuot()
+    {
+        return GetItemQuantity(ChumRuot.Code);
+    }
+
+    private Sprite GetItemImageByCode(string itemCode)
+    {
+        foreach (ItemDefinition item in itemDefinitions)
+        {
+            if (item.itemCode == itemCode)
+            {
+                return item.itemImage;
+            }
+        }
+
+        Debug.LogWarning("Không tìm thấy hình ảnh cho vật phẩm: " + itemCode);
+        return null;
     }
 
     private void SaveBag()
     {
-        PlayerPrefs.SetInt("ChumRuot", bag.ChumRuot);
-        PlayerPrefs.SetInt("Nam", bag.Nam);
+        BagSaveData saveData = new BagSaveData();
+
+        foreach (IBagItem item in bag.Items)
+        {
+            BagSaveItem saveItem = new BagSaveItem();
+            saveItem.itemCode = item.ItemCode;
+            saveItem.quantity = item.Quantity;
+
+            saveData.items.Add(saveItem);
+        }
+
+        string json = JsonUtility.ToJson(saveData);
+
+        PlayerPrefs.SetString(BagSaveKey, json);
         PlayerPrefs.Save();
 
-        Debug.Log("Đã lưu Bag vào bộ nhớ.");
+        Debug.Log("Đã lưu Bag: " + json);
     }
 
     private void LoadBag()
     {
-        int savedChumRuot = PlayerPrefs.GetInt("ChumRuot", 0);
-        int savedNam = PlayerPrefs.GetInt("Nam", 0);
+        bag.ClearAll();
 
-        bag.SetChumRuot(savedChumRuot);
-        bag.SetNam(savedNam);
+        string json = PlayerPrefs.GetString(BagSaveKey, "");
 
-        Debug.Log("Đã load Bag: Chùm ruột = " + savedChumRuot + ", Nấm = " + savedNam);
+        if (string.IsNullOrEmpty(json))
+        {
+            Debug.Log("Chưa có dữ liệu Bag.");
+            return;
+        }
+
+        BagSaveData saveData = JsonUtility.FromJson<BagSaveData>(json);
+
+        if (saveData == null || saveData.items == null)
+        {
+            Debug.LogWarning("Dữ liệu Bag bị lỗi.");
+            return;
+        }
+
+        foreach (BagSaveItem savedItem in saveData.items)
+        {
+            Sprite itemImage = GetItemImageByCode(savedItem.itemCode);
+            bag.AddItem(savedItem.itemCode, itemImage, savedItem.quantity);
+        }
+
+        Debug.Log("Đã load Bag.");
+    }
+
+    public void ClearBag()
+    {
+        bag.ClearAll();
+
+        PlayerPrefs.DeleteKey(BagSaveKey);
+        PlayerPrefs.Save();
+
+        OnBagChanged?.Invoke();
+
+        Debug.Log("Đã xóa toàn bộ Bag.");
     }
 }
