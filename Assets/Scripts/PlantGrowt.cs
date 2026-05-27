@@ -101,15 +101,26 @@ public class PlantGrowth : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
+            string itemCode = "";
+
             if (plantType == PlantType.ChumRuot)
             {
-                GameManager.Instance.AddChumRuot(1);
-                Debug.Log("Đã cộng 1 Chùm ruột vào túi.");
+                itemCode = ChumRuot.Code;
             }
             else if (plantType == PlantType.Nam)
             {
-                GameManager.Instance.AddNam(1);
-                Debug.Log("Đã cộng 1 Nấm vào túi.");
+                itemCode = Nam.Code;
+            }
+
+            bool added = GameManager.Instance.AddItem(itemCode, 1);
+
+            if (added)
+            {
+                Debug.Log("Đã thêm vật phẩm vào Bag mới: " + itemCode);
+            }
+            else
+            {
+                Debug.LogWarning("Không thể thêm vật phẩm vào Bag: " + itemCode);
             }
         }
         else
