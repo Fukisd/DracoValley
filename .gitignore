@@ -104,3 +104,15 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+
+# Ignore PlayFab Shared Settings (Contains TitleId and Secret Keys!)
+/[Aa]ssets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings.asset
+/[Aa]ssets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings.asset.meta
+
+
+# Bỏ qua file keystore dùng để build game trên Android (vô cùng quan trọng không được push)
+*.keystore
+*.jks
+*.keystore.meta
+*.jks.meta
