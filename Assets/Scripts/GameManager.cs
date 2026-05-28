@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Globalization;
+using System.Collections.Generic;
 using UnityEngine;
 
 public interface IBagItem
@@ -262,6 +263,14 @@ public class GameManager : MonoBehaviour
 
     public int VayRongQuantity => vayRongQuantity;
 
+    [Header("Gold")]
+    [SerializeField] private int goldQuantity = 0;
+    [SerializeField] private TMPro.TextMeshProUGUI goldText;
+
+    private const string GoldSaveKey = "GoldQuantity";
+
+    public int GoldQuantity => goldQuantity;
+
     public IBagItem GetItemAtSlot(int index)
     {
         return bag.GetItemAtSlot(index);
@@ -269,6 +278,7 @@ public class GameManager : MonoBehaviour
 
     public System.Action OnBagChanged;
 
+    
 
 
     private void Awake()
@@ -284,6 +294,128 @@ public class GameManager : MonoBehaviour
 
         LoadBag();
         LoadVayRong();
+        LoadGold();
+    }
+
+    public IReadOnlyList<IBagItem> GetAllItems()
+    {
+        return bag.Items;
+    }
+
+    private void UpdateGoldUI()
+    {
+        if (goldText != null)
+        {
+            goldText.text = FormatMoney(goldQuantity);
+        }
+    }
+
+    private string FormatMoney(int amount)
+    {
+        return amount.ToString("N0", new CultureInfo("vi-VN")) + "$";
+    }
+
+    public bool SellItem(string itemCode, int amount)
+    {
+        const int pricePerItem = 500;
+
+        if (string.IsNullOrEmpty(itemCode) || amount <= 0)
+        {
+            Debug.LogWarning("Số lượng bán không hợp lệ.");
+            return false;
+        }
+
+        int currentQuantity = GetItemQuantity(itemCode);
+
+        if (amount > currentQuantity)
+        {
+            Debug.LogWarning("Không đủ vật phẩm để bán. Hiện có: " + currentQuantity + ", muốn bán: " + amount);
+            return false;
+        }
+
+        bool removed = RemoveItem(itemCode, amount);
+
+        if (!removed)
+        {
+            Debug.LogWarning("Bán thất bại vì không trừ được vật phẩm.");
+            return false;
+        }
+
+        int goldEarned = amount * pricePerItem;
+        AddGold(goldEarned);
+
+        Debug.Log("Đã bán " + amount + " " + itemCode + " và nhận " + goldEarned + " vàng.");
+
+        return true;
+    }
+
+    public void AddGold(int amount)
+    {
+        goldQuantity += amount;
+
+        if (goldQuantity < 0)
+        {
+            goldQuantity = 0;
+        }
+
+        SaveGold();
+        UpdateGoldUI();
+
+        Debug.Log("Tiền vàng hiện có: " + goldQuantity);
+    }
+
+    public bool SpendGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            return false;
+        }
+
+        if (goldQuantity < amount)
+        {
+            Debug.LogWarning("Không đủ tiền vàng.");
+            return false;
+        }
+
+        goldQuantity -= amount;
+
+        SaveGold();
+        UpdateGoldUI();
+
+        Debug.Log("Đã tiêu " + amount + " vàng. Còn lại: " + goldQuantity);
+        return true;
+    }
+
+    public int GetGold()
+    {
+        return goldQuantity;
+    }
+
+    public void SetGold(int amount)
+    {
+        goldQuantity = Mathf.Max(0, amount);
+
+        SaveGold();
+        UpdateGoldUI();
+
+        Debug.Log("Đã set tiền vàng = " + goldQuantity);
+    }
+
+    private void SaveGold()
+    {
+        PlayerPrefs.SetInt(GoldSaveKey, goldQuantity);
+        PlayerPrefs.Save();
+
+        Debug.Log("Đã lưu tiền vàng: " + goldQuantity);
+    }
+
+    private void LoadGold()
+    {
+        goldQuantity = PlayerPrefs.GetInt(GoldSaveKey, 0);
+
+        UpdateGoldUI();
+
+        Debug.Log("Đã load tiền vàng: " + goldQuantity);
     }
 
     private void UpdateVayRongUI()
@@ -405,6 +537,11 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning("Không tìm thấy hình ảnh cho vật phẩm: " + itemCode);
         return null;
+    }
+
+    public Sprite GetItemImage(string itemCode)
+    {
+        return GetItemImageByCode(itemCode);
     }
 
     private void SaveBag()
