@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+*.unity merge=unityyamlmerge
+*.prefab merge=unityyamlmerge
+```[[2](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQFgSrHv6AWbNhp0bB8DhzpZegJ_gXEXfuZsA-8rMEjkYUzaF8KWCt2k1HB4_jjteMXfqHldF4D5OYVioV_xbMr7bBR-MIS8s2NQguM6nCw6A5_v7MNu1bw3INct3ktoUzn7ZHUdnt6W5OXga0bPRXTxpNrP1CD9Z7jLYUEwOiu7r0ldqnFu3_ZgGthyhMASnQnCx349HSFMUURZlW1G)]
