@@ -117,6 +117,8 @@ public class PlantGrowth : MonoBehaviour
             if (added)
             {
                 Debug.Log("Đã thêm vật phẩm vào Bag mới: " + itemCode);
+
+                GameManager.Instance.AddHarvestedPlant();
             }
             else
             {

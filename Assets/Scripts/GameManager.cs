@@ -278,7 +278,19 @@ public class GameManager : MonoBehaviour
 
     public System.Action OnBagChanged;
 
-    
+    [Header("Level")]
+    [SerializeField] private int level = 1;
+    [SerializeField] private int harvestedPlantCount = 0;
+    [SerializeField] private TMPro.TextMeshProUGUI levelText;
+
+    private const string LevelSaveKey = "PlayerLevel";
+    private const string HarvestedPlantCountSaveKey = "HarvestedPlantCount";
+    private const int PlantsPerLevel = 6;
+
+    public int Level => level;
+    public int HarvestedPlantCount => harvestedPlantCount;
+
+
 
 
     private void Awake()
@@ -295,6 +307,68 @@ public class GameManager : MonoBehaviour
         LoadBag();
         LoadVayRong();
         LoadGold();
+        LoadLevel();
+    }
+
+    public void AddHarvestedPlant()
+    {
+        harvestedPlantCount++;
+
+        if (harvestedPlantCount >= PlantsPerLevel)
+        {
+            int levelUpAmount = harvestedPlantCount / PlantsPerLevel;
+            level += levelUpAmount;
+            harvestedPlantCount = harvestedPlantCount % PlantsPerLevel;
+
+            Debug.Log("Lên level! Level hiện tại: " + level);
+        }
+
+        SaveLevel();
+        UpdateLevelUI();
+
+        Debug.Log("Số cây đã thu hoạch trong level này: " + harvestedPlantCount + "/" + PlantsPerLevel);
+    }
+
+    public int GetLevel()
+    {
+        return level;
+    }
+
+    public void SetLevel(int amount)
+    {
+        level = Mathf.Max(1, amount);
+
+        SaveLevel();
+        UpdateLevelUI();
+
+        Debug.Log("Đã set Level = " + level);
+    }
+
+    private void SaveLevel()
+    {
+        PlayerPrefs.SetInt(LevelSaveKey, level);
+        PlayerPrefs.SetInt(HarvestedPlantCountSaveKey, harvestedPlantCount);
+        PlayerPrefs.Save();
+
+        Debug.Log("Đã lưu Level: " + level + " | Harvest Count: " + harvestedPlantCount);
+    }
+
+    private void LoadLevel()
+    {
+        level = PlayerPrefs.GetInt(LevelSaveKey, 1);
+        harvestedPlantCount = PlayerPrefs.GetInt(HarvestedPlantCountSaveKey, 0);
+
+        UpdateLevelUI();
+
+        Debug.Log("Đã load Level: " + level + " | Harvest Count: " + harvestedPlantCount);
+    }
+
+    private void UpdateLevelUI()
+    {
+        if (levelText != null)
+        {
+            levelText.text = level.ToString();
+        }
     }
 
     public IReadOnlyList<IBagItem> GetAllItems()
