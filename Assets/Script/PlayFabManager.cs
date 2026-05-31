@@ -30,7 +30,7 @@ public class PlayFabManager : MonoBehaviour
 
     void OnLoginFailure(PlayFabError error)
     {
-        Debug.LogWarning("❌ Có lỗi xảy ra khi kết nối với PlayFab!");
+        Debug.LogWarning("Có lỗi xảy ra khi kết nối với PlayFab!");
         Debug.LogError(error.GenerateErrorReport());
     }
 }
