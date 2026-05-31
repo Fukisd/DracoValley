@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public interface IBagItem
 {
@@ -278,20 +279,36 @@ public class GameManager : MonoBehaviour
 
     public System.Action OnBagChanged;
 
-    [Header("Level")]
+    [Header("Level Mission")]
     [SerializeField] private int level = 1;
     [SerializeField] private int harvestedPlantCount = 0;
+
     [SerializeField] private TMPro.TextMeshProUGUI levelText;
 
     private const string LevelSaveKey = "PlayerLevel";
     private const string HarvestedPlantCountSaveKey = "HarvestedPlantCount";
-    private const int PlantsPerLevel = 6;
+
+    public const int PlantsPerLevel = 6;
+    public const int MaxLevelNow = 3;
 
     public int Level => level;
     public int HarvestedPlantCount => harvestedPlantCount;
 
+    public System.Action OnLevelMissionChanged;
 
 
+    [ContextMenu("Reset Level Mission")]
+    public void ResetLevelMission()
+    {
+        level = 1;
+        harvestedPlantCount = 0;
+
+        SaveLevel();
+        UpdateLevelUI();
+        OnLevelMissionChanged?.Invoke();
+
+        Debug.Log("Đã reset Level về 1 và tiến độ nhiệm vụ về 0/6.");
+    }
 
     private void Awake()
     {
@@ -308,40 +325,73 @@ public class GameManager : MonoBehaviour
         LoadVayRong();
         LoadGold();
         LoadLevel();
+
+        
     }
 
     public void AddHarvestedPlant()
     {
-        harvestedPlantCount++;
+        if (level >= MaxLevelNow)
+        {
+            UpdateLevelUI();
+            OnLevelMissionChanged?.Invoke();
+            return;
+        }
 
         if (harvestedPlantCount >= PlantsPerLevel)
         {
-            int levelUpAmount = harvestedPlantCount / PlantsPerLevel;
-            level += levelUpAmount;
-            harvestedPlantCount = harvestedPlantCount % PlantsPerLevel;
-
-            Debug.Log("Lên level! Level hiện tại: " + level);
+            UpdateLevelUI();
+            OnLevelMissionChanged?.Invoke();
+            return;
         }
+
+        harvestedPlantCount++;
 
         SaveLevel();
         UpdateLevelUI();
+        OnLevelMissionChanged?.Invoke();
 
-        Debug.Log("Số cây đã thu hoạch trong level này: " + harvestedPlantCount + "/" + PlantsPerLevel);
+        Debug.Log("Tiến độ nhiệm vụ: " + harvestedPlantCount + "/" + PlantsPerLevel);
+    }
+
+    public void ClaimLevelMission()
+    {
+        if (!CanClaimLevelMission())
+        {
+            Debug.LogWarning("Chưa đủ điều kiện để claim.");
+            UpdateLevelUI();
+            OnLevelMissionChanged?.Invoke();
+            return;
+        }
+
+        level++;
+        harvestedPlantCount = 0;
+
+        SaveLevel();
+        UpdateLevelUI();
+        OnLevelMissionChanged?.Invoke();
+
+        Debug.Log("Claim thành công. Level hiện tại: " + level);
+    }
+
+    public bool CanClaimLevelMission()
+    {
+        return level < MaxLevelNow && harvestedPlantCount >= PlantsPerLevel;
+    }
+
+    public bool IsMissionCompleted(int missionLevel)
+    {
+        return level > missionLevel;
+    }
+
+    public bool IsCurrentMission(int missionLevel)
+    {
+        return level == missionLevel && level < MaxLevelNow;
     }
 
     public int GetLevel()
     {
         return level;
-    }
-
-    public void SetLevel(int amount)
-    {
-        level = Mathf.Max(1, amount);
-
-        SaveLevel();
-        UpdateLevelUI();
-
-        Debug.Log("Đã set Level = " + level);
     }
 
     private void SaveLevel()
@@ -358,7 +408,11 @@ public class GameManager : MonoBehaviour
         level = PlayerPrefs.GetInt(LevelSaveKey, 1);
         harvestedPlantCount = PlayerPrefs.GetInt(HarvestedPlantCountSaveKey, 0);
 
+        level = Mathf.Clamp(level, 1, MaxLevelNow);
+        harvestedPlantCount = Mathf.Clamp(harvestedPlantCount, 0, PlantsPerLevel);
+
         UpdateLevelUI();
+        OnLevelMissionChanged?.Invoke();
 
         Debug.Log("Đã load Level: " + level + " | Harvest Count: " + harvestedPlantCount);
     }
