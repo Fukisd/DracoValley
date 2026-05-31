@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+
 public enum PlantType
 {
     ChumRuot,
