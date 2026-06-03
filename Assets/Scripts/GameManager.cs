@@ -310,6 +310,27 @@ public class GameManager : MonoBehaviour
         Debug.Log("Đã reset Level về 1 và tiến độ nhiệm vụ về 0/6.");
     }
 
+    [Header("Market")]
+    public const int VayRongPackPrice = 300000;
+    public const int VayRongPackAmount = 5;
+
+    public bool BuyVayRongPack()
+    {
+        bool paid = SpendGold(VayRongPackPrice);
+
+        if (!paid)
+        {
+            Debug.LogWarning("Không đủ vàng để mua Vảy Rồng. Cần: " + FormatMoney(VayRongPackPrice));
+            return false;
+        }
+
+        AddVayRong(VayRongPackAmount);
+
+        Debug.Log("Mua thành công " + VayRongPackAmount + " Vảy Rồng với giá " + FormatMoney(VayRongPackPrice));
+
+        return true;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -445,7 +466,7 @@ public class GameManager : MonoBehaviour
 
     public bool SellItem(string itemCode, int amount)
     {
-        const int pricePerItem = 500;
+        const int pricePerItem = 5000;
 
         if (string.IsNullOrEmpty(itemCode) || amount <= 0)
         {

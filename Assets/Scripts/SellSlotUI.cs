@@ -14,7 +14,7 @@ public class SellSlotUI : MonoBehaviour
     [SerializeField] private Button sellButton;
     [SerializeField] private GameObject sellPlusButton;
 
-    private const int PricePerItem = 500;
+    private const int PricePerItem = 5000;
 
     private readonly List<string> availableItemCodes = new List<string>();
     private readonly List<string> availableItemNames = new List<string>();
