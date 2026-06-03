@@ -22,11 +22,18 @@ public class GachaUI : MonoBehaviour
         if (resultPanel10 != null) resultPanel10.SetActive(false);
 
         int randomIndex = Random.Range(0, rewards.Length);
+        
         resultSlot1.sprite = rewards[randomIndex];
         resultSlot1.gameObject.SetActive(true);
-        
         resultPanel1.SetActive(true);
-        Debug.Log("Gacha x1! Bạn nhận được: " + rewards[randomIndex].name);
+
+        string charName = rewards[randomIndex].name; 
+        if (CharacterDataManager.instance != null) 
+        {
+            CharacterDataManager.instance.AddNewCharacter(charName);
+        }
+        
+        Debug.Log("Gacha x1! Bạn nhận được: " + charName);
     }
 
     public void Roll10()
@@ -46,7 +53,13 @@ public class GachaUI : MonoBehaviour
             resultSlots10[i].sprite = rewards[randomIndex];
             resultSlots10[i].gameObject.SetActive(true);
 
-            resultNames += rewards[randomIndex].name + ", ";
+            string charName = rewards[randomIndex].name;
+            if (CharacterDataManager.instance != null) 
+            {
+                CharacterDataManager.instance.AddNewCharacter(charName);
+            }
+
+            resultNames += charName + ", ";
         }
 
         resultPanel10.SetActive(true);
