@@ -48,6 +48,25 @@ public class GemManager : MonoBehaviour
         if (gemTextDisplay != null)
             gemTextDisplay.text = currentGems.ToString();
     }
+
+    public bool ConsumeGems(int amount)
+    {
+        if (currentGems >= amount)
+        {
+            int startValue = currentGems;
+            currentGems -= amount;
+            PlayerPrefs.SetInt("PlayerGems", currentGems); 
+            DOTween.To(() => startValue, x => {
+                if (gemTextDisplay != null) gemTextDisplay.text = x.ToString();
+            }, currentGems, 0.5f).SetUpdate(true);
+
+            return true; 
+        }
+        else
+        {
+            return false; 
+        }
+    }
 }
 
 #if UNITY_EDITOR
