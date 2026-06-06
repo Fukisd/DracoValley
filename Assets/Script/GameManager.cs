@@ -754,4 +754,21 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Đã xóa toàn bộ Bag.");
     }
+
+    public void RegisterStatusUI(
+    TMPro.TextMeshProUGUI newGoldText,
+    TMPro.TextMeshProUGUI newVayRongText,
+    TMPro.TextMeshProUGUI newLevelText
+)
+    {
+        goldText = newGoldText;
+        vayRongText = newVayRongText;
+        levelText = newLevelText;
+
+        UpdateGoldUI();
+        UpdateVayRongUI();
+        UpdateLevelUI();
+
+        Debug.Log("Đã gán lại UI tiền, vảy rồng, level cho scene mới.");
+    }
 }
