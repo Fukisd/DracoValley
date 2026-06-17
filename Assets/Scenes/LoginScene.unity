@@ -376,6 +376,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 059301026b7740247ab71bdfa5fcebdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayFabManager
+  myTitleId: 188720
+  nextSceneName: IslandScene
 --- !u!4 &392340451
 Transform:
   m_ObjectHideFlags: 0
@@ -699,9 +701,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1530391854}
-        m_TargetAssemblyTypeName: LoadScence, Assembly-CSharp
-        m_MethodName: LoadGameScene
+      - m_Target: {fileID: 392340450}
+        m_TargetAssemblyTypeName: PlayFabManager, Assembly-CSharp
+        m_MethodName: LoginAndStartGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

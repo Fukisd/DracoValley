@@ -749,7 +749,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0110\xC3 THANH TO\xC1N"
+  m_text: "X\xC1C NH\u1EACN \u0110\xC3 THANH TO\xC1N "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4067eca506d9bf144bc87fd65a201a08, type: 2}
   m_sharedMaterial: {fileID: 2725883717367431236, guid: 4067eca506d9bf144bc87fd65a201a08, type: 2}

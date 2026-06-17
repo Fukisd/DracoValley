@@ -24,7 +24,7 @@ public class PayOSManager : MonoBehaviour
     public TextMeshProUGUI contentDisplayText;
     public TextMeshProUGUI statusText;
 
-    [Header("THÔNG TIN TÀI KHOẢN CỦA BẠN")]
+    [Header("THÔNG TIN TÀI KHOẢN KHÁCH")]
     public string myBankId = "MB"; 
     public string myAccountNo = "8056898789"; 
     public string myAccountName = "LE TRAN XUAN NHI";
@@ -33,12 +33,14 @@ public class PayOSManager : MonoBehaviour
     private Sequence paymentSeq;
 
     private int pendingGems;
+    private int pendingAmount;
 
     void Start() { paymentPanel.SetActive(false); }
 
     public void OpenPayment(int amount, string packName, string itemCode, int gems)
     {
         pendingGems = gems;
+        pendingAmount = amount; 
 
         if (paymentSeq != null) paymentSeq.Kill();
         paymentPanel.SetActive(true);
@@ -51,7 +53,9 @@ public class PayOSManager : MonoBehaviour
 
         currentOrderCode = System.DateTimeOffset.Now.ToUnixTimeSeconds();
         statusText.text = "ĐANG TẠO ĐƠN HÀNG...";
+        
         qrRawImage.texture = null;
+        qrRawImage.color = new Color(1, 1, 1, 0f); 
 
         StartCoroutine(CreatePayOSOrder(amount, itemCode, currentOrderCode));
     }
@@ -82,11 +86,24 @@ public class PayOSManager : MonoBehaviour
         if (www.result == UnityWebRequest.Result.Success)
         {
             string qrCodeStr = ExtractValue(www.downloadHandler.text, "qrCode");
-            string qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + qrCodeStr;
-            StartCoroutine(DownloadQR(qrUrl));
-            statusText.text = "CHỜ THANH TOÁN...";
+            
+            if (!string.IsNullOrEmpty(qrCodeStr))
+            {
+                string qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + UnityWebRequest.EscapeURL(qrCodeStr);
+                
+                StartCoroutine(DownloadQR(qrUrl));
+                statusText.text = "CHỜ THANH TOÁN...";
+            }
+            else
+            {
+                statusText.text = "<color=red>KHÔNG TÌM THẤY MÃ QR!</color>";
+            }
         }
-        else { statusText.text = "<color=red>LỖI TẠO ĐƠN!</color>"; }
+        else 
+        { 
+            Debug.LogError("Error PayOS: " + www.downloadHandler.text);
+            statusText.text = "<color=red>LỖI TẠO ĐƠN!</color>"; 
+        }
     }
 
     public void CheckPaymentStatus()
@@ -110,10 +127,18 @@ public class PayOSManager : MonoBehaviour
 
             GemManager.Instance.AddGems(pendingGems);
                 
+         
+            if (PlayFabManager.Instance != null)
+            {
+                PlayFabManager.Instance.SaveTransactionToPlayFab(currentOrderCode.ToString(), pendingAmount, pendingGems);
+            }
+
             Invoke("CloseUI", 1.5f);
-            
         }
-        else { statusText.text = "<color=red>CHƯA NHẬN ĐƯỢC TIỀN!</color>"; }
+        else 
+        { 
+            statusText.text = "<color=red>CHƯA NHẬN ĐƯỢC TIỀN!</color>"; 
+        }
     }
 
     public void CloseUI()
@@ -128,7 +153,18 @@ public class PayOSManager : MonoBehaviour
     {
         UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
         yield return www.SendWebRequest();
-        if (www.result == UnityWebRequest.Result.Success) qrRawImage.texture = DownloadHandlerTexture.GetContent(www);
+        
+        if (www.result == UnityWebRequest.Result.Success) 
+        {
+            qrRawImage.texture = DownloadHandlerTexture.GetContent(www);
+            
+            qrRawImage.color = new Color(1, 1, 1, 1f); 
+        }
+        else
+        {
+            Debug.LogError("Tải mã QR thất bại: " + www.error);
+            statusText.text = "<color=red>LỖI KẾT NỐI TẢI QR!</color>";
+        }
     }
 
     string GenerateHMAC(string data, string key)
@@ -143,8 +179,19 @@ public class PayOSManager : MonoBehaviour
 
     string ExtractValue(string json, string key)
     {
-        int startIndex = json.IndexOf(key) + key.Length + 3;
-        int endIndex = json.IndexOf("\"", startIndex);
-        return json.Substring(startIndex, endIndex - startIndex);
+        try
+        {
+            int startIndex = json.IndexOf(key) + key.Length + 3;
+            int endIndex = json.IndexOf("\"", startIndex);
+            if (startIndex > 0 && endIndex > startIndex)
+            {
+                return json.Substring(startIndex, endIndex - startIndex);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Lỗi khi tách chuỗi QR: " + e.Message);
+        }
+        return "";
     }
 }
