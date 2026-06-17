@@ -316,18 +316,20 @@ public class GameManager : MonoBehaviour
 
     public bool BuyVayRongPack()
     {
-        bool paid = SpendGold(VayRongPackPrice);
+        // Lấy phần trăm giảm giá từ rồng đang có (Ví dụ: 0.15f tức là giảm 15%)
+        float discount = (CharacterDataManager.instance != null) ? CharacterDataManager.instance.GetVayRongPriceDiscount() : 0f;
+        int finalPrice = Mathf.RoundToInt(VayRongPackPrice * (1f - discount));
+
+        bool paid = SpendGold(finalPrice); // Sử dụng giá đã giảm
 
         if (!paid)
         {
-            Debug.LogWarning("Không đủ vàng để mua Vảy Rồng. Cần: " + FormatMoney(VayRongPackPrice));
+            Debug.LogWarning("Không đủ vàng để mua Vảy Rồng. Cần: " + FormatMoney(finalPrice));
             return false;
         }
 
         AddVayRong(VayRongPackAmount);
-
-        Debug.Log("Mua thành công " + VayRongPackAmount + " Vảy Rồng với giá " + FormatMoney(VayRongPackPrice));
-
+        Debug.Log("Mua thành công với giá đã giảm: " + FormatMoney(finalPrice));
         return true;
     }
 
@@ -352,27 +354,25 @@ public class GameManager : MonoBehaviour
 
     public void AddHarvestedPlant()
     {
-        if (level >= MaxLevelNow)
+        if (level >= MaxLevelNow || harvestedPlantCount >= PlantsPerLevel) return;
+
+        // Mặc định tăng 1 tiến độ
+        int progressToAdd = 1;
+
+        // Kiểm tra tỷ lệ may mắn x2 tiến độ từ kỹ năng rồng
+        float doubleChance = (CharacterDataManager.instance != null) ? CharacterDataManager.instance.GetDoubleHarvestChance() : 0f;
+        if (Random.value < doubleChance)
         {
-            UpdateLevelUI();
-            OnLevelMissionChanged?.Invoke();
-            return;
+            progressToAdd = 2;
+            Debug.Log("🔥 May mắn kích hoạt! Kỹ năng rồng giúp X2 tiến độ thu hoạch!");
         }
 
-        if (harvestedPlantCount >= PlantsPerLevel)
-        {
-            UpdateLevelUI();
-            OnLevelMissionChanged?.Invoke();
-            return;
-        }
-
-        harvestedPlantCount++;
+        harvestedPlantCount += progressToAdd;
+        harvestedPlantCount = Mathf.Min(harvestedPlantCount, PlantsPerLevel); // Không vượt quá giới hạn
 
         SaveLevel();
         UpdateLevelUI();
         OnLevelMissionChanged?.Invoke();
-
-        Debug.Log("Tiến độ nhiệm vụ: " + harvestedPlantCount + "/" + PlantsPerLevel);
     }
 
     public void ClaimLevelMission()
@@ -483,18 +483,17 @@ public class GameManager : MonoBehaviour
         }
 
         bool removed = RemoveItem(itemCode, amount);
+        if (!removed) return false;
 
-        if (!removed)
-        {
-            Debug.LogWarning("Bán thất bại vì không trừ được vật phẩm.");
-            return false;
-        }
+        // Tính toán tiền gốc
+        int baseGoldEarned = amount * 5000;
 
-        int goldEarned = amount * pricePerItem;
-        AddGold(goldEarned);
+        // Cộng thêm % vàng từ kỹ năng của rồng sở hữu
+        float bonusPercent = (CharacterDataManager.instance != null) ? CharacterDataManager.instance.GetTotalGoldSellBonus() : 0f;
+        int finalGoldEarned = baseGoldEarned + Mathf.RoundToInt(baseGoldEarned * bonusPercent);
 
-        Debug.Log("Đã bán " + amount + " " + itemCode + " và nhận " + goldEarned + " vàng.");
-
+        AddGold(finalGoldEarned);
+        Debug.Log($"Đã bán nhận {finalGoldEarned} vàng (Đã bao gồm +{bonusPercent * 100}% buff từ rồng).");
         return true;
     }
 

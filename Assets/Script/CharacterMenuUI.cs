@@ -1,91 +1,83 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro; // Đảm bảo đã import TMPro
 
 public class CharacterMenuUI : MonoBehaviour
 {
-    [System.Serializable]
-    public class CharacterDisplayData
-    {
-        public string characterName;  // Tên nhớ giống hệt trên PlayFab
-        public Sprite avatarSprite;   // Hình avatar nhỏ
-        public Sprite fullArtSprite;  // Hình đứng bành trướng bự chà bá
-    }
-
     [Header("--- KÉO THẢ UI TỪ HIERARCHY VÀO ĐÂY ---")]
-    public Transform characterListContainer; 
-    public GameObject characterSlotPrefab;    
-    public Image mainCharacterDisplay;        
-
-    [Header("--- DANH SÁCH KHAI BÁO CÁC TƯỚNG TRONG GAME ---")]
-    public List<CharacterDisplayData> allGameCharacters;
+    public Transform characterListContainer;
+    public GameObject characterSlotPrefab;
+    public Image mainCharacterDisplay;
+    public TextMeshProUGUI abilityDescriptionText; // THÊM TEXT HIỂN THỊ KỸ NĂNG
 
     private void Start()
     {
-        mainCharacterDisplay.gameObject.SetActive(false); // Ẩn hình giữa đi lúc mới dô
+        mainCharacterDisplay.gameObject.SetActive(false);
+        if (abilityDescriptionText != null) abilityDescriptionText.text = ""; // Mới vào xóa chữ rác
         UpdateCharacterMenu();
     }
 
     public void UpdateCharacterMenu()
     {
-        // Xoá sạch slot rác phòng khi load lại 2 lần
         foreach (Transform child in characterListContainer)
         {
             Destroy(child.gameObject);
         }
 
-        if (CharacterDataManager.instance == null) 
+        if (CharacterDataManager.instance == null)
         {
             Debug.LogWarning("Chưa load Data Manager");
             return;
         }
 
-        // Lấy list nhân vật đã lấy trên PlayFab
         List<string> owned = CharacterDataManager.instance.ownedCharacters;
-        bool isFirstOwnedCharacter = true; 
 
-        // Duyệt qua số nhân vật của game
-        foreach (var data in allGameCharacters)
+        // ĐỌC DANH SÁCH TỪ DATA MANAGER THAY VÌ KHAI BÁO TẠI ĐÂY
+        List<CharacterDataManager.CharacterDisplayData> allCharacters = CharacterDataManager.instance.allGameCharacters;
+        bool isFirstOwnedCharacter = true;
+
+        foreach (var data in allCharacters)
         {
-            // Tự động đẻ Nút (Avatar) nhét vào trong Container Content của ScrollView
             GameObject newSlot = Instantiate(characterSlotPrefab, characterListContainer);
             Image slotImage = newSlot.GetComponent<Image>();
             Button slotButton = newSlot.GetComponent<Button>();
 
-            // Thay ảnh Avatar nhỏ cho nút
             slotImage.sprite = data.avatarSprite;
 
-            // Kiểm tra có sở hữu hay chưa
             if (owned.Contains(data.characterName))
             {
-                slotImage.color = Color.white; // Màu sáng
+                slotImage.color = Color.white;
                 slotButton.interactable = true;
 
-                // CHỨC NĂNG: Khi ấn vào nút Avatar
-                slotButton.onClick.AddListener(() => 
+                slotButton.onClick.AddListener(() =>
                 {
-                    ShowMainCharacter(data.fullArtSprite);
+                    ShowMainCharacter(data.fullArtSprite, data.abilityDescription);
                 });
 
-                // Tự động hiện bức ảnh của nhân vật mà mình có lên giữa màn hình khi vừa mở kho đồ lên
-                if(isFirstOwnedCharacter)
+                if (isFirstOwnedCharacter)
                 {
-                    ShowMainCharacter(data.fullArtSprite);
+                    ShowMainCharacter(data.fullArtSprite, data.abilityDescription);
                     isFirstOwnedCharacter = false;
                 }
             }
             else
             {
-                slotImage.color = Color.black; // Chưa có nên màu đen thui
-                slotButton.interactable = false; // Quá phèn nên không cho click
+                slotImage.color = Color.black;
+                slotButton.interactable = false;
             }
         }
     }
 
-    // Hàm riêng dùng để đổi ảnh to ở giữa phòng
-    private void ShowMainCharacter(Sprite fullArt)
+    // HÀM ĐỔI ẢNH TO VÀ ĐỔI CHỮ MÔ TẢ KỸ NĂNG
+    private void ShowMainCharacter(Sprite fullArt, string description)
     {
         mainCharacterDisplay.sprite = fullArt;
-        mainCharacterDisplay.gameObject.SetActive(true); // Nhá hình lên
+        mainCharacterDisplay.gameObject.SetActive(true);
+
+        if (abilityDescriptionText != null)
+        {
+            abilityDescriptionText.text = description;
+        }
     }
 }

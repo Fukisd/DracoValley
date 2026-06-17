@@ -20,7 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/StoreScene.unity
     guid: 795de43f4a3a962408efa36366e8fe58
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SettingScene.unity
     guid: 4440ba0a2f19a14498e9db69e9b9fae4
   - enabled: 1

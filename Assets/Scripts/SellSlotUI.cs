@@ -320,7 +320,15 @@ public class SellSlotUI : MonoBehaviour
         }
 
         int selectedQuantity = GetSelectedQuantity();
-        int totalPrice = selectedQuantity * PricePerItem;
+
+        // 1. LẤY PHẦN TRĂM BUFF TỪ RỒNG (Ví dụ: Mika buff 0.1 tức là 10%)
+        float bonusPercent = (CharacterDataManager.instance != null) ? CharacterDataManager.instance.GetTotalGoldSellBonus() : 0f;
+
+        // 2. TÍNH GIÁ ĐÃ CỘNG BUFF (5000 + 5000 * 0.1 = 5500)
+        int buffedPricePerItem = PricePerItem + Mathf.RoundToInt(PricePerItem * bonusPercent);
+
+        // 3. TÍNH TỔNG TIỀN HIỂN THỊ TRÊN UI
+        int totalPrice = selectedQuantity * buffedPricePerItem;
 
         totalPriceText.text = FormatMoney(totalPrice);
     }

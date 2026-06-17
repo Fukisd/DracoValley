@@ -92,6 +92,7 @@ public class PlantGrowth : MonoBehaviour
         Debug.Log("Cây đã lớn tới stage cuối cùng, có thể thu hoạch.");
     }
 
+    // Tìm đến hàm này trong file PlantGrowth.cs và thay thế toàn bộ:
     private void HarvestPlant()
     {
         if (harvested) return;
@@ -113,13 +114,36 @@ public class PlantGrowth : MonoBehaviour
                 itemCode = Nam.Code;
             }
 
-            bool added = GameManager.Instance.AddItem(itemCode, 1);
+            // =========================================================================
+            // LOGIC TÍNH X2 THU HOẠCH TỪ RỒNG
+            // =========================================================================
+            int harvestAmount = 1; // Mặc định thu hoạch được 1 quả
+
+            if (CharacterDataManager.instance != null)
+            {
+                float doubleChance = CharacterDataManager.instance.GetDoubleHarvestChance();
+
+                // Lệnh Random.value sẽ trả về một số ngẫu nhiên từ 0.0 đến 1.0
+                if (Random.value < doubleChance)
+                {
+                    harvestAmount = 2; // May mắn kích hoạt! Tăng số lượng nhận được lên 2
+                    Debug.Log("🔥 Kỹ năng rồng kích hoạt! Bạn thu hoạch được X2 vật phẩm!");
+                }
+            }
+            // =========================================================================
+
+            // Thêm số lượng thực tế (1 hoặc 2) vào túi đồ
+            bool added = GameManager.Instance.AddItem(itemCode, harvestAmount);
 
             if (added)
             {
-                Debug.Log("Đã thêm vật phẩm vào Bag mới: " + itemCode);
+                Debug.Log($"Đã thêm {harvestAmount} vật phẩm vào Bag mới: " + itemCode);
 
-                GameManager.Instance.AddHarvestedPlant();
+                // Chạy vòng lặp để cộng tiến độ nhiệm vụ tương ứng với số cây thu hoạch được
+                for (int i = 0; i < harvestAmount; i++)
+                {
+                    GameManager.Instance.AddHarvestedPlant();
+                }
             }
             else
             {
