@@ -48,13 +48,13 @@ MonoBehaviour:
   - characterName: Nhan vat 1
     avatarSprite: {fileID: -137894237, guid: 5ffb8472d5c31594e919ff6c53ae3eb0, type: 3}
     fullArtSprite: {fileID: -137894237, guid: 5ffb8472d5c31594e919ff6c53ae3eb0, type: 3}
-    abilityType: 1
+    abilityType: 4
     abilityValue: 10
-    abilityDescription: "T\u0103ng ti\u1EC1n b\xE1n c\xE2y"
+    abilityDescription: "Gi\u1EA3m 20% th\u1EDDi gian t\u0103ng tr\u01B0\u1EDFng "
   - characterName: Nhan vat 2
     avatarSprite: {fileID: 1201630330, guid: 1eb51d9428eaee14da8cb2b5b15d3326, type: 3}
     fullArtSprite: {fileID: 1201630330, guid: 1eb51d9428eaee14da8cb2b5b15d3326, type: 3}
     abilityType: 2
-    abilityValue: 10
-    abilityDescription: "T\u0103ng g\u1EA5p \u0111\xF4i l\u01B0\u1EE3ng thu ho\u1EA1ch"
+    abilityValue: 1
+    abilityDescription: "x2 c\xE2y khi thu ho\u1EA1ch"
   ownedCharacters: []

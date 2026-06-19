@@ -79,7 +79,9 @@ public class PlantGrowth : MonoBehaviour
     {
         while (currentIndex < evolutions.Length - 1)
         {
-            yield return new WaitForSeconds(growTime);
+            float finalGrowTime = GetFinalGrowTime();
+
+            yield return new WaitForSeconds(finalGrowTime);
 
             evolutions[currentIndex].SetActive(false);
 
@@ -161,5 +163,21 @@ public class PlantGrowth : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    private float GetFinalGrowTime()
+    {
+        float finalGrowTime = growTime;
+
+        if (CharacterDataManager.instance != null)
+        {
+            float reduction = CharacterDataManager.instance.GetPlantGrowTimeReduction();
+
+            finalGrowTime = growTime * (1f - reduction);
+
+            Debug.Log($"Buff rồng giảm thời gian cây: {reduction * 100}% | Thời gian grow còn: {finalGrowTime}s");
+        }
+
+        return Mathf.Max(finalGrowTime, 0.5f);
     }
 }
