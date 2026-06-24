@@ -7,9 +7,10 @@ using PlayFab.ClientModels;
 public enum DragonAbilityType
 {
     None,
-    IncreaseGoldSell,      // Tăng % vàng nhận được khi bán vật phẩm
-    DoubleHarvestProgress, // Có tỷ lệ % x2 tiến độ khi thu hoạch cây
-    ReduceVayRongPrice     // Giảm % giá mua gói Vảy Rồng trong Market
+    IncreaseGoldSell,        // Tăng % vàng nhận được khi bán vật phẩm
+    DoubleHarvestProgress,   // Có tỷ lệ % x2 tiến độ khi thu hoạch cây
+    ReduceVayRongPrice,      // Giảm % giá mua gói Vảy Rồng trong Market
+    ReducePlantGrowTime      // Giảm % thời gian phát triển cây
 }
 
 public class CharacterDataManager : MonoBehaviour
@@ -143,4 +144,25 @@ public class CharacterDataManager : MonoBehaviour
         }
         return Mathf.Clamp(totalDiscount, 0f, 0.8f); // Giới hạn tối đa giảm 80% tránh bug miễn phí
     }
+
+
+    // Tính % thời gian phát triển cây được giảm
+    public float GetPlantGrowTimeReduction()
+    {
+        float totalReduction = 0f;
+
+        foreach (string charName in ownedCharacters)
+        {
+            var config = allGameCharacters.Find(c => c.characterName == charName);
+
+            if (config != null && config.abilityType == DragonAbilityType.ReducePlantGrowTime)
+            {
+                totalReduction += config.abilityValue;
+            }
+        }
+
+        // Giới hạn tối đa giảm 80%, tránh cây lớn gần như tức thì
+        return Mathf.Clamp(totalReduction, 0f, 0.8f);
+    }
+
 }

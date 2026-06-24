@@ -2065,12 +2065,20 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8657544245740611322, guid: a934842411bd16947b081ae1b955d67f, type: 3}
+      propertyPath: allGameCharacters.Array.data[0].abilityType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8657544245740611322, guid: a934842411bd16947b081ae1b955d67f, type: 3}
       propertyPath: allGameCharacters.Array.data[1].abilityValue
-      value: 0.5
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8657544245740611322, guid: a934842411bd16947b081ae1b955d67f, type: 3}
+      propertyPath: allGameCharacters.Array.data[0].abilityDescription
+      value: "Gi\u1EA3m 20% th\u1EDDi gian t\u0103ng tr\u01B0\u1EDFng "
       objectReference: {fileID: 0}
     - target: {fileID: 8657544245740611322, guid: a934842411bd16947b081ae1b955d67f, type: 3}
       propertyPath: allGameCharacters.Array.data[1].abilityDescription
-      value: "50% C\u01A1 h\u1ED9i x2 c\xE2y khi thu ho\u1EA1ch"
+      value: "x2 c\xE2y khi thu ho\u1EA1ch"
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
