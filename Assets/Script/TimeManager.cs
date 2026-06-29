@@ -63,7 +63,7 @@ public class TimeManager : MonoBehaviour
             {
                 int minutes = Mathf.FloorToInt(remainingSpeedUpTime / 60);
                 int seconds = Mathf.FloorToInt(remainingSpeedUpTime % 60);
-                timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+                timerText.text = string.Format("<b><color=#FFD700>{0:00}:{1:00}</color></b>", minutes, seconds);
             }
 
             yield return null;

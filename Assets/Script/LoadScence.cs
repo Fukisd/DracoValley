@@ -5,7 +5,7 @@ public class LoadScence : MonoBehaviour
 {
      public void LoadGameScene()
     {
-        SceneManager.LoadScene("GameScene");
+        SceneManager.LoadScene("IslandScene");
         Debug.Log ("game scene");
     }
 
