@@ -2800,6 +2800,7 @@ MonoBehaviour:
   level: 1
   harvestedPlantCount: 0
   levelText: {fileID: 0}
+  landPlotsToUnlock: []
 --- !u!4 &1638263048
 Transform:
   m_ObjectHideFlags: 0

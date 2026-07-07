@@ -11,6 +11,10 @@ public class MissionRowUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI conditionText;
     [SerializeField] private Button claimButton;
 
+    [Header("Level 4 Unlocks (Banners)")]
+    [SerializeField] private GameObject bannerScene1;
+    [SerializeField] private GameObject bannerScene2;
+
     private void Start()
     {
         if (claimButton != null)
@@ -48,11 +52,22 @@ public class MissionRowUI : MonoBehaviour
         }
 
         int currentLevel = GameManager.Instance.Level;
-        int currentHarvest = GameManager.Instance.HarvestedPlantCount;
-
         bool completed = GameManager.Instance.IsMissionCompleted(missionLevel);
         bool current = GameManager.Instance.IsCurrentMission(missionLevel);
         bool canClaim = current && GameManager.Instance.CanClaimLevelMission();
+
+        // ---- LOGIC MỞ 2 BANNER KHI LÊN LEVEL 4 ----
+        if (currentLevel >= 4)
+        {
+            if (bannerScene1 != null) bannerScene1.SetActive(true);
+            if (bannerScene2 != null) bannerScene2.SetActive(true);
+        }
+        else
+        {
+            if (bannerScene1 != null) bannerScene1.SetActive(false);
+            if (bannerScene2 != null) bannerScene2.SetActive(false);
+        }
+        // --------------------------------------------
 
         // Nếu nhiệm vụ này đã hoàn thành
         if (completed)
@@ -75,13 +90,36 @@ public class MissionRowUI : MonoBehaviour
         {
             if (conditionText != null)
             {
-                if (canClaim)
+                // RIÊNG LEVEL 3: Yêu cầu Vảy Rồng thay vì Cây
+                if (currentLevel == 3)
                 {
-                    conditionText.text = "Thu hoạch cây: 6/6";
+                    int requiredScales = 5;
+                    int currentScales = GameManager.Instance.DragonScaleCount; // Lấy từ GameManager
+
+                    if (canClaim)
+                    {
+                        conditionText.text = "Thu thập vảy rồng: " + requiredScales + "/" + requiredScales;
+                    }
+                    else
+                    {
+                        int displayScales = Mathf.Min(currentScales, requiredScales);
+                        conditionText.text = "Thu thập vảy rồng: " + displayScales + "/" + requiredScales;
+                    }
                 }
-                else
+                else // Các level khác vẫn dùng cây như cũ
                 {
-                    conditionText.text = "Thu hoạch cây: " + currentHarvest + "/" + GameManager.PlantsPerLevel;
+                    int requiredPlants = GameManager.Instance.GetRequiredPlantsForCurrentLevel();
+                    int currentHarvest = GameManager.Instance.HarvestedPlantCount;
+
+                    if (canClaim)
+                    {
+                        conditionText.text = "Thu hoạch cây: " + requiredPlants + "/" + requiredPlants;
+                    }
+                    else
+                    {
+                        int displayHarvest = Mathf.Min(currentHarvest, requiredPlants);
+                        conditionText.text = "Thu hoạch cây: " + displayHarvest + "/" + requiredPlants;
+                    }
                 }
             }
 

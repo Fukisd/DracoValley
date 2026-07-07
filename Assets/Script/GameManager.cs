@@ -234,6 +234,27 @@ public class BagSaveData
 {
     public List<BagSaveItem> items = new List<BagSaveItem>();
 }
+[System.Serializable]
+public class CodeItemReward
+{
+    public string itemCode;
+    public int quantity;
+}
+
+[System.Serializable]
+public class GiftCode
+{
+    public string code;              // Mã code (Ví dụ: TANTHU, DRAGON2026)
+    public int goldReward;           // Số vàng thưởng
+    public int vayRongReward;        // Số vảy rồng thưởng
+    public List<CodeItemReward> itemRewards = new List<CodeItemReward>(); // Danh sách vật phẩm thưởng
+}
+
+[System.Serializable]
+public class ClaimedCodesData
+{
+    public List<string> codes = new List<string>();
+}
 
 [System.Serializable]
 public class BagSaveItem
@@ -266,6 +287,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Gold")]
     [SerializeField] private int goldQuantity = 0;
+    [Header("Gift Code System")]
+    [SerializeField] private List<GiftCode> giftCodes = new List<GiftCode>(); // Cấu hình danh sách Code trong Inspector
+    private List<string> claimedCodes = new List<string>();                  // Danh sách các code người chơi đã xài
+    private const string ClaimedCodesSaveKey = "ClaimedGiftCodes";
     [SerializeField] private TMPro.TextMeshProUGUI goldText;
 
     private const string GoldSaveKey = "GoldQuantity";
@@ -288,13 +313,83 @@ public class GameManager : MonoBehaviour
     private const string LevelSaveKey = "PlayerLevel";
     private const string HarvestedPlantCountSaveKey = "HarvestedPlantCount";
 
+    // THÊM BIẾN NÀY ĐỂ KÉO ĐẤT TRONG UNITY
+    [Header("Mảnh đất mở khóa khi lên Level 2")]
+    [SerializeField] private GameObject[] landPlotsToUnlock;
+    [SerializeField] private GameObject landPlotToDisableAtLevel2;
+
+    [Header("Tính năng mở khóa khi lên Level 3")]
+    [SerializeField] private GameObject animalPenGameObject;
+    [SerializeField] private GameObject bannerGameObject;
+    [SerializeField] private GameObject characterButton;
+
     public const int PlantsPerLevel = 6;
-    public const int MaxLevelNow = 3;
+    public const int MaxLevelNow = 4;
 
     public int Level => level;
     public int HarvestedPlantCount => harvestedPlantCount;
 
     public System.Action OnLevelMissionChanged;
+
+    // 1. THÊM BIẾN NÀY VÀO TRONG GAMEMANAGER ĐỂ ĐẾM VẢY RỒNG
+    // Đồng bộ với ví vảy rồng chính
+    public int DragonScaleCount => vayRongQuantity;
+
+    // Hàm này dùng để gọi khi người chơi nhặt/thu thập được vảy rồng trong game
+    // Hàm này dùng để gọi khi người chơi nhặt/thu thập được vảy rồng trong game
+    public void AddDragonScale(int amount)
+    {
+        // Gọi hàm AddVayRong để vừa cộng vảy, vừa lưu dữ liệu, vừa tự update UI luôn
+        AddVayRong(amount);
+    }
+
+    // THÊM ĐOẠN NÀY VÀO:
+    public int GetRequiredPlantsForCurrentLevel()
+    {
+        if (level == 1) return 20;  // Cần 20 cây để lên Level 2
+        if (level == 2) return 100; // THÊM: Cần 100 cây ở Level 3 để lên Level 4
+        return 6; // Level 2 (và các cấp khác nếu có) mặc định cần 6 cây
+    }
+
+    private void CheckAndUnlockLands()
+    {
+        bool isLevel2OrHigher = (level >= 2);
+        bool isLevel3OrHigher = (level >= 3); // Đạt Level 3 sẽ là true
+
+        // 1. Bật/Tắt 2 mảnh đất mới khi đạt Level 2 trở lên
+        if (landPlotsToUnlock != null)
+        {
+            foreach (GameObject land in landPlotsToUnlock)
+            {
+                if (land != null) land.SetActive(isLevel2OrHigher);
+            }
+        }
+
+        // 2. ẨN mảnh đất cũ khi đạt Level 2 trở lên
+        if (landPlotToDisableAtLevel2 != null)
+        {
+            landPlotToDisableAtLevel2.SetActive(!isLevel2OrHigher);
+        }
+
+        // 3. BẬT chuồng thú khi chính thức đặt chân lên Level 3
+        if (animalPenGameObject != null)
+        {
+            animalPenGameObject.SetActive(isLevel3OrHigher);
+        }
+
+        // THÊM: Tự động bật Banner khi lên Level 3 (và tắt nếu quay về lv thấp hơn)
+        if (bannerGameObject != null)
+        {
+            bannerGameObject.SetActive(isLevel3OrHigher);
+        }
+
+        // THÊM: Tự động bật Nút Nhân Vật khi lên Level 3
+        if (characterButton != null)
+        {
+            characterButton.SetActive(isLevel3OrHigher);
+        }
+    
+    }
 
 
     [ContextMenu("Reset Level Mission")]
@@ -304,6 +399,7 @@ public class GameManager : MonoBehaviour
         harvestedPlantCount = 0;
 
         SaveLevel();
+        CheckAndUnlockLands();
         UpdateLevelUI();
         OnLevelMissionChanged?.Invoke();
 
@@ -348,18 +444,20 @@ public class GameManager : MonoBehaviour
         LoadVayRong();
         LoadGold();
         LoadLevel();
+        LoadClaimedCodes();
 
-        
+
+
     }
 
     public void AddHarvestedPlant()
     {
-        if (level >= MaxLevelNow || harvestedPlantCount >= PlantsPerLevel) return;
+        int requiredPlants = GetRequiredPlantsForCurrentLevel(); // Lấy số cây động (20 cây)
 
-        // Mặc định tăng 1 tiến độ
+        if (level >= MaxLevelNow || harvestedPlantCount >= requiredPlants) return;
+
         int progressToAdd = 1;
 
-        // Kiểm tra tỷ lệ may mắn x2 tiến độ từ kỹ năng rồng
         float doubleChance = (CharacterDataManager.instance != null) ? CharacterDataManager.instance.GetDoubleHarvestChance() : 0f;
         if (Random.value < doubleChance)
         {
@@ -368,7 +466,7 @@ public class GameManager : MonoBehaviour
         }
 
         harvestedPlantCount += progressToAdd;
-        harvestedPlantCount = Mathf.Min(harvestedPlantCount, PlantsPerLevel); // Không vượt quá giới hạn
+        harvestedPlantCount = Mathf.Min(harvestedPlantCount, requiredPlants);
 
         SaveLevel();
         UpdateLevelUI();
@@ -389,6 +487,7 @@ public class GameManager : MonoBehaviour
         harvestedPlantCount = 0;
 
         SaveLevel();
+        CheckAndUnlockLands(); // THÊM DÒNG NÀY: Mở khóa đất ngay khi lên cấp
         UpdateLevelUI();
         OnLevelMissionChanged?.Invoke();
 
@@ -397,7 +496,15 @@ public class GameManager : MonoBehaviour
 
     public bool CanClaimLevelMission()
     {
-        return level < MaxLevelNow && harvestedPlantCount >= PlantsPerLevel;
+        // Nếu đang ở level 3, điều kiện xét theo vảy rồng (cần 5 vảy)
+        if (Level == 3)
+        {
+            return DragonScaleCount >= 5;
+        }
+
+        // Các level khác vẫn xét theo số cây thu hoạch bình thường
+        int requiredPlants = GetRequiredPlantsForCurrentLevel();
+        return HarvestedPlantCount >= requiredPlants;
     }
 
     public bool IsMissionCompleted(int missionLevel)
@@ -430,8 +537,12 @@ public class GameManager : MonoBehaviour
         harvestedPlantCount = PlayerPrefs.GetInt(HarvestedPlantCountSaveKey, 0);
 
         level = Mathf.Clamp(level, 1, MaxLevelNow);
-        harvestedPlantCount = Mathf.Clamp(harvestedPlantCount, 0, PlantsPerLevel);
 
+        // Sửa lại đoạn giới hạn Clamp này
+        int requiredPlants = GetRequiredPlantsForCurrentLevel();
+        harvestedPlantCount = Mathf.Clamp(harvestedPlantCount, 0, requiredPlants);
+
+        CheckAndUnlockLands(); // THÊM DÒNG NÀY: Tự bật đất lên nếu dữ liệu đã ở lv2
         UpdateLevelUI();
         OnLevelMissionChanged?.Invoke();
 
@@ -575,19 +686,22 @@ public class GameManager : MonoBehaviour
     }
 
     public void AddVayRong(int amount)
+{
+    vayRongQuantity += amount;
+
+    if (vayRongQuantity < 0)
     {
-        vayRongQuantity += amount;
-
-        if (vayRongQuantity < 0)
-        {
-            vayRongQuantity = 0;
-        }
-
-        SaveVayRong();
-        UpdateVayRongUI();
-
-        Debug.Log("Vảy Rồng hiện có: " + vayRongQuantity);
+        vayRongQuantity = 0;
     }
+
+    SaveVayRong();
+    UpdateVayRongUI();
+
+    // THÊM DÒNG NÀY: Gọi UI nhiệm vụ cập nhật tiến độ vảy rồng mới
+    OnLevelMissionChanged?.Invoke(); 
+
+    Debug.Log("Vảy Rồng hiện có: " + vayRongQuantity);
+}
 
     public int GetVayRong()
     {
@@ -769,5 +883,96 @@ public class GameManager : MonoBehaviour
         UpdateLevelUI();
 
         Debug.Log("Đã gán lại UI tiền, vảy rồng, level cho scene mới.");
+    }
+    /// <summary>
+    /// Hàm gọi xử lý đổi Code từ Giao diện UI. Trả về thông báo kết quả tiếng Việt.
+    /// </summary>
+    public string RedeemCode(string inputCode)
+    {
+        if (string.IsNullOrEmpty(inputCode))
+        {
+            return "Mã code không được để trống!";
+        }
+
+        // Loại bỏ khoảng trắng thừa và chuyển về chữ HOA để kiểm tra chính xác
+        string cleanCode = inputCode.Trim().ToUpper();
+
+        // 1. Kiểm tra xem code này đã từng nhập chưa
+        if (claimedCodes.Contains(cleanCode))
+        {
+            return "Mã quà tặng này đã được sử dụng!";
+        }
+
+        // 2. Tìm code xem có tồn tại trong danh sách config không
+        GiftCode targetCode = giftCodes.Find(g => g.code.Trim().ToUpper() == cleanCode);
+        if (targetCode == null)
+        {
+            return "Mã quà tặng không hợp lệ hoặc đã hết hạn!";
+        }
+
+        // 3. Phát thưởng
+        // Thưởng Vàng
+        if (targetCode.goldReward > 0)
+        {
+            AddGold(targetCode.goldReward);
+        }
+
+        // Thưởng Vảy Rồng
+        if (targetCode.vayRongReward > 0)
+        {
+            AddVayRong(targetCode.vayRongReward);
+        }
+
+        // Thưởng Vật phẩm (Nấm, Chùm Ruột, v.v...)
+        if (targetCode.itemRewards != null)
+        {
+            foreach (CodeItemReward itemReward in targetCode.itemRewards)
+            {
+                if (itemReward.quantity > 0)
+                {
+                    AddItem(itemReward.itemCode, itemReward.quantity);
+                }
+            }
+        }
+
+        // 4. Đánh dấu code đã dùng và lưu lại
+        claimedCodes.Add(cleanCode);
+        SaveClaimedCodes();
+
+        return "Chúc mừng! Đổi mã quà tặng thành công!";
+    }
+
+    private void SaveClaimedCodes()
+    {
+        ClaimedCodesData data = new ClaimedCodesData();
+        data.codes = claimedCodes;
+        string json = JsonUtility.ToJson(data);
+        PlayerPrefs.SetString(ClaimedCodesSaveKey, json);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadClaimedCodes()
+    {
+        string json = PlayerPrefs.GetString(ClaimedCodesSaveKey, "");
+        if (!string.IsNullOrEmpty(json))
+        {
+            ClaimedCodesData data = JsonUtility.FromJson<ClaimedCodesData>(json);
+            if (data != null && data.codes != null)
+            {
+                claimedCodes = data.codes;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hàm xóa lịch sử nhập code (nhấp chuột phải vào GameManager ở Inspector để dùng khi test)
+    /// </summary>
+    [ContextMenu("Clear Claimed Codes History")]
+    public void ClearClaimedCodesHistory()
+    {
+        claimedCodes.Clear();
+        PlayerPrefs.DeleteKey(ClaimedCodesSaveKey);
+        PlayerPrefs.Save();
+        Debug.Log("Đã xóa lịch sử nhập Code của người chơi.");
     }
 }
