@@ -433,6 +433,10 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
+            // THÊM DÒNG NÀY: Trước khi tự hủy bản sao, bắt Instance gốc phải 
+            // copy lại toàn bộ liên kết ô đất và UI của Scene mới load này.
+            Instance.CopySceneReferencesFrom(this);
+
             Destroy(gameObject);
             return;
         }
@@ -445,9 +449,6 @@ public class GameManager : MonoBehaviour
         LoadGold();
         LoadLevel();
         LoadClaimedCodes();
-
-
-
     }
 
     public void AddHarvestedPlant()
@@ -974,5 +975,28 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.DeleteKey(ClaimedCodesSaveKey);
         PlayerPrefs.Save();
         Debug.Log("Đã xóa lịch sử nhập Code của người chơi.");
+    }
+    
+    private void CopySceneReferencesFrom(GameManager newSceneManager)
+    {
+        // 1. Đồng bộ lại danh sách mảnh đất và chuồng trại của Scene mới
+        this.landPlotsToUnlock = newSceneManager.landPlotsToUnlock;
+        this.landPlotToDisableAtLevel2 = newSceneManager.landPlotToDisableAtLevel2;
+        this.animalPenGameObject = newSceneManager.animalPenGameObject;
+        this.bannerGameObject = newSceneManager.bannerGameObject;
+        this.characterButton = newSceneManager.characterButton;
+
+        // 2. Đồng bộ lại các Text UI hiển thị tiền, vảy, level của Scene mới
+        this.goldText = newSceneManager.goldText;
+        this.vayRongText = newSceneManager.vayRongText;
+        this.levelText = newSceneManager.levelText;
+
+        // 3. Thực thi ngay lập tức logic ẩn/hiện đất đai và cập nhật lại UI
+        CheckAndUnlockLands();
+        UpdateGoldUI();
+        UpdateVayRongUI();
+        UpdateLevelUI();
+
+        Debug.Log("Đã đồng bộ thành công các ô đất và UI mới vào GameManager gốc!");
     }
 }
